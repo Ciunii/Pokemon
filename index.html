@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- OSやブラウザによる「ダークモードによる自動での色反転」を無効化する設定 -->
+    <meta name="color-scheme" content="light only">
+    <title>タイプ相性計算</title>
+    <!-- Using Google Fonts for a modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'CustomTitleFont';
+            src: url('-F62fjtqLzI2JPCgQBnw7HFow2oe2EcP5pp0erwTqsSWs9Jezazjcb4.0.woff2') format('woff2');
+            font-display: swap;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #0f2027;
+            background-image: url('mainvisual_pc@2x.avif');
+            background-size: cover;
+            background-position: center top;
+            background-attachment: fixed;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 40px;
+            padding-bottom: 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 95%;
+            margin: 0 auto;
+            background: linear-gradient(228.97deg, rgba(120, 120, 120, 0.25) 7.03%, rgba(0, 0, 0, 0.4) 89.63%);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            border-radius: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+            padding: 30px;
+        }
+
+        h1.title {
+            text-align: center;
+            font-family: 'CustomTitleFont', sans-serif;
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            margin-top: 0;
+            margin-bottom: 30px;
+            background: linear-gradient(180deg, #ffd32a 0%, #ff9f1a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 4px 10px rgba(0, 0, 0, 0.4), 0px 0px 5px rgba(255, 211, 42, 0.3);
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        /* ==========================================
+           スマホ・タブレット向け（レスポンシブ）最適化
+           ========================================== */
+        @media(max-width: 768px) {
+
+            /* スマホ専用の背景切り替え */
+            body {
+                background-image: url('mainvisual_sp@2x.avif');
+            }
+
+            /* 画面全体の上下の無駄な余白を完全に削る */
+            body {
+                padding-top: 5px;
+                padding-bottom: 5px;
+            }
+
+            /* メインのパネル同士の間隔もギリギリまで詰める */
+            .calculator-grid {
+                grid-template-columns: 1fr;
+                gap: 8px !important;
+            }
+
+            /* タイトルも1行にスリムに */
+            h1.title {
+                font-size: 15px;
+                margin-bottom: 6px;
+            }
+
+            /* コンテナや中身のパネルの内側のスペースを極小化 */
+            .container {
+                padding: 6px 8px;
+                border-radius: 8px;
+            }
+
+            .panel {
+                padding: 8px !important;
+            }
+
+            h2 {
+                font-size: 12px;
+                margin-bottom: 6px;
+                padding-bottom: 4px;
+            }
+
+            h2 img {
+                height: 28px !important;
+            }
+
+            /* メイン画面の横長スロットを半分近くまで薄くする */
+            .slots {
+                gap: 6px !important;
+            }
+
+            .type-slot {
+                height: 32px !important;
+                font-size: 12px !important;
+                border-radius: 6px;
+            }
+
+            .type-slot img {
+                height: 28px !important;
+            }
+
+            /* モーダル：タイプ選択（2列）も指で押せるギリギリの小ささに */
+            .type-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 4px !important;
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+
+            .type-btn {
+                padding: 6px 8px !important;
+                gap: 4px !important;
+                font-size: 11px !important;
+            }
+
+            .type-btn img {
+                height: 28px !important;
+            }
+
+            /* 結果一覧パネルの余白も削る */
+            .results-panel {
+                margin-top: 8px !important;
+            }
+
+            .results-grid {
+                gap: 5px !important;
+            }
+
+            /* 結果表示カード：縦並びをやめて「1行の横並び」に再圧縮することで縦スクロールを防止 */
+            .result-card {
+                flex-direction: row !important;
+                align-items: center !important;
+                gap: 6px !important;
+                padding: 6px 8px !important;
+                border-radius: 6px;
+                border-left-width: 4px !important;
+            }
+
+            .result-type {
+                width: 60px !important;
+                font-size: 10px !important;
+                padding: 3px 0 !important;
+                box-shadow: none !important;
+            }
+
+            .result-message {
+                font-size: 11px !important;
+                align-self: center !important;
+                margin-bottom: 0 !important;
+            }
+
+            /* 倍率を右端に押し込む */
+            .result-multiplier {
+                font-size: 14px !important;
+                align-self: center !important;
+                margin-top: 0 !important;
+                margin-left: auto;
+            }
+        }
+
+        .panel {
+            background: linear-gradient(228.97deg, rgba(120, 120, 120, 0.25) 7.03%, rgba(0, 0, 0, 0.4) 89.63%);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+            color: #dcdde1;
+        }
+
+        .slots {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .type-slot {
+            height: 55px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: bold;
+            font-size: 15px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .type-slot:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* おすすめセクションのスタイル */
+        .recommendation-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed rgba(255, 255, 255, 0.1);
+        }
+
+        .recommendation-title {
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            color: #ffd32a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recommendation-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 8px;
+        }
+
+        .recommend-badge {
+            width: 160px;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        @media(max-width: 768px) {
+            .recommendation-list {
+                grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
+                gap: 5px;
+            }
+
+            .recommend-badge {
+                width: 125px;
+                font-size: 10px;
+                padding: 4px 6px;
+            }
+        }
+
+        /* シミュレーション結果セクション用の追加スタイル */
+        .simulation-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .sim-item {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            padding: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .sim-label {
+            font-size: 13px;
+            /* テキストも少し大きく */
+            font-weight: bold;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sim-label img {
+            height: 44px;
+            /* 特大サイズに拡大 */
+            width: auto;
+            flex-shrink: 0;
+        }
+
+        .sim-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+        }
+
+        /* 展開・折りたたみ用のスタイル */
+        .simulation-wrapper {
+            position: relative;
+            max-height: 145px;
+            /* 約1行分 */
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+        }
+
+        .simulation-wrapper.expanded {
+            max-height: 20000px;
+            /* 十分な高さ (複合タイプ全パターン表示に対応) */
+        }
+
+        .simulation-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+            pointer-events: none;
+            display: block;
+        }
+
+        .simulation-wrapper.expanded .simulation-overlay {
+            display: none;
+        }
+
+        .show-more-btn {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-align: center;
+        }
+
+        .show-more-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .show-more-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sim-resist {
+            color: #74b9ff;
+        }
+
+        .sim-damage {
+            color: #ff7675;
+            font-weight: bold;
+        }
+
+        @media(max-width: 768px) {
+            .simulation-list {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 5px;
+            }
+
+            .sim-label img {
+                height: 28px;
+                /* スマホではメインと同じ28px */
+            }
+        }
+
+        .defender-panel .slots {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .results-panel {
+            margin-top: 25px;
+        }
+
+        .results-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .result-card {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 15px 20px;
+            gap: 20px;
+            border-left: 6px solid transparent;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.4s ease forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-type {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            width: 170px;
+            /* フェアリーに合わせた広めの固定幅 */
+            flex-shrink: 0;
+        }
+
+        .result-type img {
+            height: 44px;
+            /* ボックス内でも特大サイズを維持 */
+            width: auto;
+        }
+
+        .result-bar-container {
+            position: relative;
+            flex-grow: 1;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            /* ベースとなる薄い背景 */
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .result-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            border-radius: 6px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+            z-index: 1;
+        }
+
+        .result-info {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 0 15px;
+            width: 100%;
+            pointer-events: none;
+            /* 下のバーの邪魔をしない */
+        }
+
+        .result-message {
+            font-size: 14px;
+            color: #fff;
+            font-weight: 600;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+            white-space: nowrap;
+        }
+
+        .result-multiplier {
+            font-size: 24px;
+            font-weight: 900;
+            margin-left: auto;
+            /* 右端に寄せる */
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+        }
+
+        .mult-4 {
+            color: #ff3f34;
+            text-shadow: 0 0 10px rgba(255, 63, 52, 0.5);
+        }
+
+        .mult-2 {
+            color: #ff9f1a;
+        }
+
+        .mult-1 {
+            color: #fff;
+            opacity: 0.9;
+        }
+
+        .mult-05 {
+            color: #74b9ff;
+        }
+
+        .mult-025 {
+            color: #a29bfe;
+        }
+
+        .mult-0 {
+            color: #dfe4ea;
+            opacity: 0.5;
+        }
+
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            line-height: 1.1;
+            font-size: 0.85em;
+            margin: 0 4px;
+        }
+
+        .fraction-top {
+            padding-bottom: 2px;
+        }
+
+        .fraction-bottom {
+            border-top: 1px solid currentColor;
+            padding-top: 2px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Modal specific */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: #1e272e;
+            padding: 25px;
+            border-radius: 16px;
+            width: 580px;
+            max-width: 95%;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal.visible .modal-content {
+            transform: scale(1);
+        }
+
+        .modal h3 {
+            margin-top: 0;
+            text-align: center;
+            color: #dcdde1;
+        }
+
+        .type-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+            margin-bottom: 25px;
+        }
+
+        .type-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+
+        .type-btn:hover {
+            filter: brightness(1.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .type-btn:active {
+            transform: translateY(0);
+        }
+
+        .type-btn.disabled {
+            opacity: 0.3;
+            filter: grayscale(1);
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .modal-action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .type-btn.none {
+            width: 100%;
+            background: #2f3542;
+        }
+
+        .type-btn.all-clear {
+            width: 100%;
+            background: #2f3542;
+        }
+
+        .close-btn {
+            width: 100%;
+            padding: 12px;
+            background: #3742fa;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #5352ed;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #a4b0be;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 11px;
+            /* 免責事項などは少し小さめに */
+            color: rgba(255, 255, 255, 0.4);
+            padding-bottom: 30px;
+            line-height: 1.8;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 20px;
+        }
+
+        .footer-pv {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .footer-disclaimer {
+            max-width: 700px;
+            margin: 10px auto;
+            text-align: center;
+        }
+
+        footer a {
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
+            transition: all 0.2s;
+        }
+
+        footer a:hover {
+            color: #fff;
+            border-bottom-color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- <h1 class="title">タイプ相性計算</h1> -->
+
+        <div class="calculator-grid">
+            <div class="panel attacker-panel">
+                <h2><img src="リザードン.gif" alt="こうげき"
+                        style="height: 48px; vertical-align: middle; margin-right: 8px; margin-top: -6px;">こうげきのタイプ
+                </h2>
+                <div class="slots">
+                    <div class="type-slot" data-target="atk-0">未設定</div>
+                    <div class="type-slot" data-target="atk-1">未設定</div>
+                    <div class="type-slot" data-target="atk-2">未設定</div>
+                    <div class="type-slot" data-target="atk-3">未設定</div>
+                </div>
+            </div>
+            <div class="panel defender-panel">
+                <h2><img src="カビゴン.gif" alt="ぼうぎょ"
+                        style="height: 48px; vertical-align: middle; margin-right: 8px; margin-top: -6px;">ぼうぎょのタイプ</h2>
+                <div class="slots">
+                    <div class="type-slot" data-target="def-0">未設定</div>
+                    <div class="type-slot" data-target="def-1">未設定</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel results-panel">
+            <h2>ダメージ倍率</h2>
+            <div id="results" class="results-grid">
+                <!-- Results populated here -->
+            </div>
+        </div>
+
+        <footer>
+
+            <p style="margin-bottom: 5px;">
+                参照：<a href="https://yakkun.com/" target="_blank" rel="noopener">ポケモン徹底攻略</a> 様
+                &nbsp;/&nbsp;
+                <a href="https://www.pokemonchampions.jp/ja/" target="_blank" rel="noopener">PokémonChampions</a> 様
+            </p>
+
+            <div class="footer-disclaimer">
+                ポケットモンスター・ポケモン・Pokémonは任天堂・クリーチャーズ・ゲームフリークの登録商標です。<br>
+                当サイトは個人ファンサイトであり、株式会社ポケモン他企業様、ポケモン徹底攻略様とは一切関係ありません。<br>
+                下記はサイト独自の内容に関する著作権を示すものです。
+            </div>
+
+            <p style="font-size: 10px; color: rgba(255,255,255,0.6); margin-top: 10px; font-weight: bold;">
+                © 2026 ポケモンVCマルチ鯖
+            </p>
+        </footer>
+    </div>
+
+    <!-- Type Selection Modal -->
+    <div id="type-modal" class="modal">
+        <div class="modal-content">
+            <h3>タイプを選択</h3>
+            <div class="modal-action-grid">
+                <button class="type-btn none" data-type="">✖ 解除</button>
+                <button class="type-btn all-clear" id="modal-all-clear">✖ 全解除</button>
+            </div>
+            <div class="type-grid">
+                <!-- 18 types generated here -->
+            </div>
+            <button class="close-btn">閉じる</button>
+        </div>
+    </div>
+
+    <script>
+        const typeColors = {
+            'ノーマル': '#A8A878',
+            'ほのお': '#f5761c',
+            'みず': '#6890F0',
+            'くさ': '#5eb134',
+            'でんき': '#ffc400',
+            'こおり': '#25c3c9',
+            'かくとう': '#c03028',
+            'どく': '#a040a0',
+            'じめん': '#9e5a2d',
+            'ひこう': '#967ce4',
+            'エスパー': '#f85888',
+            'むし': '#8e9c0b',
+            'いわ': '#917f1f',
+            'ゴースト': '#705898',
+            'ドラゴン': '#7038F8',
+            'あく': '#705848',
+            'はがね': '#9494a7',
+            'フェアリー': '#df7c92'
+        };
+
+
+
+
+
+        const typeEffectiveness = {
+            'ノーマル': { 'いわ': 0.5, 'はがね': 0.5, 'ゴースト': 0 },
+            'ほのお': { 'ほのお': 0.5, 'みず': 0.5, 'くさ': 2, 'こおり': 2, 'むし': 2, 'いわ': 0.5, 'ドラゴン': 0.5, 'はがね': 2 },
+            'みず': { 'ほのお': 2, 'みず': 0.5, 'くさ': 0.5, 'じめん': 2, 'いわ': 2, 'ドラゴン': 0.5 },
+            'でんき': { 'みず': 2, 'でんき': 0.5, 'くさ': 0.5, 'じめん': 0, 'ひこう': 2, 'ドラゴン': 0.5 },
+            'くさ': { 'ほのお': 0.5, 'みず': 2, 'くさ': 0.5, 'どく': 0.5, 'じめん': 2, 'ひこう': 0.5, 'むし': 0.5, 'いわ': 2, 'ドラゴン': 0.5, 'はがね': 0.5 },
+            'こおり': { 'ほのお': 0.5, 'みず': 0.5, 'くさ': 2, 'こおり': 0.5, 'じめん': 2, 'ひこう': 2, 'ドラゴン': 2, 'はがね': 0.5 },
+            'かくとう': { 'ノーマル': 2, 'こおり': 2, 'どく': 0.5, 'ひこう': 0.5, 'エスパー': 0.5, 'むし': 0.5, 'いわ': 2, 'ゴースト': 0, 'あく': 2, 'はがね': 2, 'フェアリー': 0.5 },
+            'どく': { 'くさ': 2, 'どく': 0.5, 'じめん': 0.5, 'いわ': 0.5, 'ゴースト': 0.5, 'はがね': 0, 'フェアリー': 2 },
+            'じめん': { 'ほのお': 2, 'でんき': 2, 'くさ': 0.5, 'ひこう': 0, 'むし': 0.5, 'いわ': 2, 'はがね': 2 },
+            'ひこう': { 'でんき': 0.5, 'くさ': 2, 'かくとう': 2, 'むし': 2, 'いわ': 0.5, 'はがね': 0.5 },
+            'エスパー': { 'かくとう': 2, 'どく': 2, 'エスパー': 0.5, 'むし': 0.5, 'あく': 0, 'はがね': 0.5 },
+            'むし': { 'ほのお': 0.5, 'くさ': 2, 'かくとう': 0.5, 'どく': 0.5, 'エスパー': 2, 'ゴースト': 0.5, 'あく': 2, 'はがね': 0.5, 'フェアリー': 0.5 },
+            'いわ': { 'ほのお': 2, 'こおり': 2, 'かくとう': 0.5, 'じめん': 0.5, 'ひこう': 2, 'むし': 2, 'はがね': 0.5 },
+            'ゴースト': { 'ノーマル': 0, 'エスパー': 2, 'ゴースト': 2, 'あく': 0.5 },
+            'ドラゴン': { 'ドラゴン': 2, 'はがね': 0.5, 'フェアリー': 0 },
+            'あく': { 'かくとう': 0.5, 'エスパー': 2, 'ゴースト': 2, 'あく': 0.5, 'フェアリー': 0.5 },
+            'はがね': { 'ほのお': 0.5, 'みず': 0.5, 'でんき': 0.5, 'こおり': 2, 'いわ': 2, 'はがね': 0.5, 'フェアリー': 2 },
+            'フェアリー': { 'ほのお': 0.5, 'かくとう': 2, 'どく': 0.5, 'ドラゴン': 2, 'あく': 2, 'はがね': 0.5 }
+        };
+
+        const typeGifs = {
+            'ノーマル': 'Snorlax.gif',
+            'ほのお': 'Charizard.gif',
+            'みず': 'Blastoise.gif',
+            'くさ': 'Venusaur.gif',
+            'でんき': 'Pikachu.gif',
+            'こおり': 'Froslass.gif',
+            'かくとう': 'Lucario.gif',
+            'どく': 'Victreebel.gif',
+            'じめん': 'Hippowdon.gif',
+            'ひこう': 'Pidgeot.gif',
+            'エスパー': 'Gardevoir.gif',
+            'むし': 'Beedrill.gif',
+            'いわ': 'Tyranitar.gif',
+            'ゴースト': 'Gengar.gif',
+            'ドラゴン': 'Dragonite.gif',
+            'あく': 'Umbreon.gif',
+            'はがね': 'Steelix.gif',
+            'フェアリー': 'Sylveon.gif'
+        };
+
+        const types = Object.keys(typeColors);
+
+        // 防御おすすめ用の特定の複合タイプ組み合わせリスト
+        const dualTypeCombos = [
+            ['ノーマル', 'かくとう'], ['ノーマル', 'じめん'], ['ノーマル', 'ひこう'], ['ノーマル', 'エスパー'], ['ノーマル', 'ゴースト'], ['ノーマル', 'ドラゴン'], ['ノーマル', 'フェアリー'],
+            ['ほのお', 'かくとう'], ['ほのお', 'じめん'], ['ほのお', 'ひこう'], ['ほのお', 'エスパー'], ['ほのお', 'いわ'], ['ほのお', 'ゴースト'], ['ほのお', 'ドラゴン'], ['ほのお', 'あく'],
+            ['みず', 'かくとう'], ['みず', 'ひこう'], ['みず', 'エスパー'], ['みず', 'ゴースト'], ['みず', 'ドラゴン'], ['みず', 'はがね'], ['みず', 'あく'], ['みず', 'フェアリー'],
+            ['くさ', 'ほのお'], ['くさ', 'こおり'], ['くさ', 'かくとう'], ['くさ', 'どく'], ['くさ', 'じめん'], ['くさ', 'ゴースト'], ['くさ', 'ドラゴン'], ['くさ', 'あく'], ['くさ', 'フェアリー'],
+            ['でんき', 'ノーマル'], ['でんき', 'ほのお'], ['でんき', 'みず'], ['でんき', 'くさ'], ['でんき', 'こおり'], ['でんき', 'ひこう'], ['でんき', 'エスパー'], ['でんき', 'ゴースト'], ['でんき', 'ドラゴン'], ['でんき', 'あく'], ['でんき', 'フェアリー'],
+            ['こおり', 'じめん'], ['こおり', 'エスパー'], ['こおり', 'いわ'], ['こおり', 'ゴースト'], ['こおり', 'フェアリー'],
+            ['かくとう', 'ほのお'], ['かくとう', 'みず'], ['かくとう', 'こおり'], ['かくとう', 'どく'], ['かくとう', 'ひこう'], ['かくとう', 'エスパー'], ['かくとう', 'はがね'], ['かくとう', 'あく'],
+            ['どく', 'ほのお'], ['どく', 'みず'], ['どく', 'かくとう'], ['どく', 'エスパー'],
+            ['じめん', 'でんき'], ['じめん', 'ひこう'], ['じめん', 'いわ'], ['じめん', 'ゴースト'], ['じめん', 'はがね'], ['じめん', 'あく'],
+            ['ひこう', 'ドラゴン'], ['ひこう', 'はがね'],
+            ['エスパー', 'かくとう'], ['エスパー', 'はがね'], ['エスパー', 'フェアリー'],
+            ['むし', 'ほのお'], ['むし', 'みず'], ['むし', 'かくとう'], ['むし', 'どく'], ['むし', 'ひこう'], ['むし', 'いわ'], ['むし', 'はがね'],
+            ['いわ', 'こおり'], ['いわ', 'どく'], ['いわ', 'ひこう'], ['いわ', 'ドラゴン'], ['いわ', 'はがね'], ['いわ', 'あく'],
+            ['ゴースト', 'ほのお'], ['ゴースト', 'くさ'], ['ゴースト', 'どく'], ['ゴースト', 'あく'], ['ゴースト', 'フェアリー'],
+            ['ドラゴン', 'かくとう'], ['ドラゴン', 'じめん'], ['ドラゴン', 'ひこう'], ['ドラゴン', 'ゴースト'], ['ドラゴン', 'あく'], ['ドラゴン', 'フェアリー'],
+            ['あく', 'ほのお'], ['あく', 'こおり'], ['あく', 'はがね'], ['あく', 'ゴースト'],
+            ['はがね', 'じめん'], ['はがね', 'ひこう'], ['はがね', 'いわ'], ['はがね', 'ゴースト'], ['はがね', 'ドラゴン'], ['はがね', 'フェアリー'],
+            ['フェアリー', 'ひこう'], ['フェアリー', 'はがね']
+        ];
+
+        // 複合タイプごとのおすすめポケモンGIFマッピング
+        const dualTypePokemonGifs = {
+            "ノーマル・かくとう": "Mega_Lopunny.gif",
+            "ノーマル・じめん": "Diggersby.gif",
+            "ノーマル・ひこう": "Pidgeot.gif",
+            "ノーマル・エスパー": "Farigiraf.gif",
+            "ノーマル・ゴースト": "Hisuian_Zoroark.gif",
+            "ノーマル・ドラゴン": "Drampa.gif",
+            "ノーマル・フェアリー": "Mega_Audino.gif",
+            "ほのお・かくとう": "Emboar.gif",
+            "ほのお・じめん": "Camerupt.gif",
+            "ほのお・ひこう": "Charizard.gif",
+            "ほのお・エスパー": "Delphox.gif",
+            "ほのお・いわ": "Hisuian_Arcanine.gif",
+            "ほのお・ゴースト": "Skeledirge.gif",
+            "ほのお・ドラゴン": "Mega_Charizard_X.gif",
+            "ほのお・あく": "Incineroar.gif",
+            "みず・かくとう": "Quaquaval.gif",
+            "みず・ひこう": "Gyarados.gif",
+            "みず・エスパー": "Starmie.gif",
+            "みず・ゴースト": "Basculegion.gif",
+            "みず・ドラゴン": "Mega_Feraligatr.gif",
+            "みず・はがね": "Empoleon.gif",
+            "みず・あく": "Greninja.gif",
+            "みず・フェアリー": "Primarina.gif",
+            "くさ・ほのお": "Scovillain.gif",
+            "くさ・こおり": "Abomasnow.gif",
+            "くさ・かくとう": "Chesnaught.gif",
+            "くさ・どく": "Venusaur.gif",
+            "くさ・じめん": "Torterra.gif",
+            "くさ・ゴースト": "Sinistcha.gif",
+            "くさ・ドラゴン": "Hydrapple.gif",
+            "くさ・あく": "Meowscarada.gif",
+            "くさ・フェアリー": "Mega_Meganium.gif",
+            "でんき・ノーマル": "Heliolisk.gif",
+            "でんき・ほのお": "Rotom_Heat.gif",
+            "でんき・みず": "Rotom_Wash.gif",
+            "でんき・くさ": "Rotom_Mow.gif",
+            "でんき・こおり": "Rotom_Frost.gif",
+            "でんき・ひこう": "Emolga.gif",
+            "でんき・エスパー": "Alolan_Raichu.gif",
+            "でんき・ゴースト": "Rotom.gif",
+            "でんき・ドラゴン": "Mega_Ampharos.gif",
+            "でんき・あく": "Morpeko.gif",
+            "でんき・フェアリー": "Dedenne.gif",
+            "こおり・じめん": "Mamoswine.gif",
+            "こおり・エスパー": "Mr_Rime.gif",
+            "こおり・いわ": "Hisuian_Avalugg.gif",
+            "こおり・ゴースト": "Froslass.gif",
+            "こおり・フェアリー": "Alolan_Ninetales.gif",
+            "かくとう・ほのお": "Paldean_Tauros_Blaze.gif",
+            "かくとう・みず": "Paldean_Tauros_Aqua.gif",
+            "かくとう・こおり": "Crabominable.gif",
+            "かくとう・どく": "Sneasler.gif",
+            "かくとう・ひこう": "Hawlucha.gif",
+            "かくとう・エスパー": "Medicham.gif",
+            "かくとう・はがね": "Lucario.gif",
+            "かくとう・あく": "Pangoro.gif",
+            "どく・ほのお": "Salazzle.gif",
+            "どく・みず": "Toxapex.gif",
+            "どく・かくとう": "Toxicroak.gif",
+            "どく・エスパー": "Galarian_Slowbro.gif",
+            "どく・むし": "Beedrill.gif",
+            "じめん・でんき": "Stunfisk.gif",
+            "じめん・ひこう": "Gliscor.gif",
+            "じめん・いわ": "Rhyperior.gif",
+            "じめん・ゴースト": "Golurk.gif",
+            "じめん・はがね": "Excadrill.gif",
+            "じめん・あく": "Krookodile.gif",
+            "ひこう・ドラゴン": "Noivern.gif",
+            "ひこう・はがね": "Corviknight.gif",
+            "エスパー・かくとう": "Gallade.gif",
+            "エスパー・はがね": "Mega_Chimecho.gif",
+            "エスパー・フェアリー": "Gardevoir.gif",
+            "むし・ほのお": "Volcarona.gif",
+            "むし・みず": "Araquanid.gif",
+            "むし・かくとう": "Heracross.gif",
+            "むし・どく": "Beedrill.gif",
+            "むし・ひこう": "Mega_Pinsir.gif",
+            "むし・いわ": "Kleavor.gif",
+            "むし・はがね": "Scizor.gif",
+            "いわ・こおり": "Aurorus.gif",
+            "いわ・どく": "Glimmora.gif",
+            "いわ・ひこう": "Aerodactyl.gif",
+            "いわ・ドラゴン": "Tyrantrum.gif",
+            "いわ・はがね": "Bastiodon.gif",
+            "いわ・あく": "Tyranitar.gif",
+            "ゴースト・ほのお": "Chandelure.gif",
+            "ゴースト・くさ": "Trevenant.gif",
+            "ゴースト・どく": "Gengar.gif",
+            "ゴースト・あく": "Spiritomb.gif",
+            "ゴースト・フェアリー": "Mimikyu.gif",
+            "ドラゴン・かくとう": "Kommo_o.gif",
+            "ドラゴン・じめん": "Garchomp.gif",
+            "ドラゴン・ひこう": "Dragonite.gif",
+            "ドラゴン・ゴースト": "Dragapult.gif",
+            "ドラゴン・あく": "Hydreigon.gif",
+            "ドラゴン・フェアリー": "Mega_Altaria.gif",
+            "あく・ほのお": "Houndoom.gif",
+            "あく・こおり": "Weavile.gif",
+            "あく・はがね": "Kingambit.gif",
+            "あく・ゴースト": "Sableye.gif",
+            "はがね・じめん": "Steelix.gif",
+            "はがね・ひこう": "Skarmory.gif",
+            "はがね・いわ": "Aggron.gif",
+            "はがね・ゴースト": "Aegislash.gif",
+            "はがね・ドラゴン": "Archaludon.gif",
+            "はがね・フェアリー": "Klefki.gif",
+            "フェアリー・ひこう": "Mega_Clefable.gif",
+            "フェアリー・はがね": "Tinkaton.gif"
+        };
+        let currentState = { atk: [null, null, null, null], def: [null, null] };
+
+        // URLハッシュまたはセッションストレージから状態を復元
+        function loadInitialState() {
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                const params = new URLSearchParams(hash);
+                const atkParam = params.get('atk');
+                const defParam = params.get('def');
+                if (atkParam) {
+                    const tList = atkParam.split(',');
+                    currentState.atk = tList.map(t => (t && typeColors[t]) ? t : null).slice(0, 4);
+                    while (currentState.atk.length < 4) currentState.atk.push(null);
+                }
+                if (defParam) {
+                    const tList = defParam.split(',');
+                    currentState.def = tList.map(t => (t && typeColors[t]) ? t : null).slice(0, 2);
+                    while (currentState.def.length < 2) currentState.def.push(null);
+                }
+                return;
+            }
+
+            try {
+                const savedState = sessionStorage.getItem('pokemonTypeSettings');
+                if (savedState) currentState = JSON.parse(savedState);
+            } catch (e) { }
+        }
+
+        // 状態を保存（SessionStorage & URLハッシュ）
+        function saveState() {
+            sessionStorage.setItem('pokemonTypeSettings', JSON.stringify(currentState));
+            const atk = currentState.atk.map(t => t || '').join(',');
+            const def = currentState.def.map(t => t || '').join(',');
+            const hash = `atk=${encodeURIComponent(atk)}&def=${encodeURIComponent(def)}`;
+            // 履歴を増やさずにURLを更新
+            window.history.replaceState(null, null, '#' + hash);
+        }
+
+        loadInitialState();
+
+        // URLが直接書き換えられた（または戻るボタンなど）時の処理
+        window.addEventListener('hashchange', () => {
+            loadInitialState();
+            refreshSlots();
+            renderResults();
+        });
+
+        let activeTarget = null;
+
+        // Initialize Type Grid in Modal
+        const typeGrid = document.querySelector('.type-grid');
+        types.forEach(t => {
+            let btn = document.createElement('button');
+            btn.className = 'type-btn';
+            btn.dataset.type = t;
+            btn.style.backgroundColor = typeColors[t];
+            // 左側にGIFアイコンを追加
+            btn.innerHTML = `<img src="${typeGifs[t]}" alt="" style="height: 48px;">${t}`;
+            typeGrid.appendChild(btn);
+        });
+
+        // Event Listeners for UI
+        document.querySelectorAll('.type-slot').forEach(slot => {
+            slot.addEventListener('click', (e) => {
+                activeTarget = e.currentTarget.dataset.target;
+                const [category, index] = activeTarget.split('-');
+
+                // 現在のカテゴリーで既に選択されているタイプを取得（自分自身は除く）
+                const selectedInGroup = currentState[category].filter((t, i) => t !== null && i !== parseInt(index));
+
+                // モーダルのタイトルを更新（任意：わかりやすさのため）
+                const categoryName = category === 'atk' ? 'こうげき' : 'ぼうぎょ';
+                document.querySelector('.modal h3').textContent = `${categoryName}のタイプを選択`;
+
+                // モーダル内のボタンの状態を更新
+                document.querySelectorAll('.type-btn').forEach(btn => {
+                    const type = btn.dataset.type;
+                    if (type && selectedInGroup.includes(type)) {
+                        btn.classList.add('disabled');
+                    } else {
+                        btn.classList.remove('disabled');
+                    }
+                });
+
+                document.getElementById('type-modal').classList.add('visible');
+            });
+        });
+
+        document.querySelectorAll('.type-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                let selectedType = e.currentTarget.dataset.type;
+                if (!selectedType) selectedType = null;
+
+                const [targetCategory, targetIndex] = activeTarget.split('-');
+                if (targetCategory === 'atk') currentState.atk[targetIndex] = selectedType;
+                if (targetCategory === 'def') currentState.def[targetIndex] = selectedType;
+
+                // 状態を保存
+                saveState();
+
+                // 画面上の全スロットの表示を一括更新
+                refreshSlots();
+
+                document.getElementById('type-modal').classList.remove('visible');
+                renderResults();
+            });
+        });
+
+        // 共通シミュレーション計算関数
+        function runGlobalSimulation(activeAttackerTypes) {
+            if (activeAttackerTypes.length === 0) return [];
+
+            const candidates = [];
+            const testDef = (dtArray) => {
+                let resistCount = 0;
+                let maxMult = 0;
+                let minMult = 99;
+                activeAttackerTypes.forEach(atkT => {
+                    let m = 1;
+                    dtArray.forEach(dt => {
+                        if (typeEffectiveness[atkT] && typeEffectiveness[atkT][dt] !== undefined) {
+                            m *= typeEffectiveness[atkT][dt];
+                        }
+                    });
+                    if (m < 1) resistCount++;
+                    if (m > maxMult) maxMult = m;
+                    if (m < minMult) minMult = m;
+                });
+                candidates.push({ label: dtArray.join('・'), types: dtArray, resistCount, maxMult, minMult });
+            };
+
+            types.forEach(t => testDef([t]));
+            dualTypeCombos.forEach(combo => testDef(combo));
+
+            candidates.sort((a, b) => {
+                if (a.resistCount !== b.resistCount) return a.resistCount - b.resistCount;
+                if (b.maxMult !== a.maxMult) return b.maxMult - a.maxMult;
+                return b.minMult - a.minMult;
+            });
+            return candidates;
+        }
+
+        // スロットの表示を最新の状態（およびヒント）に更新する関数
+        function refreshSlots() {
+            const activeAttackerTypes = currentState.atk.filter(Boolean);
+            const hasAttacker = activeAttackerTypes.length > 0;
+
+            const activeDefenderTypes = currentState.def.filter(Boolean);
+            const hasDefender = activeDefenderTypes.length > 0;
+
+            // ぼうぎょのおすすめ（弱点タイプ）を算出
+            const getDefenseRecommendations = (atkTypes) => {
+                if (atkTypes.length === 0) return [];
+                const singleTypes = Object.keys(typeColors);
+                const dualTypeKeys = Object.keys(dualTypePokemonGifs);
+                const candidates = [];
+                const allPossible = [];
+
+                // tie-breakerの順序（単タイプ18 → 複合タイプ108前後）
+                singleTypes.forEach(t => allPossible.push({ types: [t], label: t }));
+                dualTypeKeys.forEach(key => allPossible.push({ types: key.split('・'), label: key }));
+
+                allPossible.forEach((def, index) => {
+                    let maxMult = 0;
+                    atkTypes.forEach(atkT => {
+                        let m = 1;
+                        def.types.forEach(dt => {
+                            if (typeEffectiveness[atkT] && typeEffectiveness[atkT][dt] !== undefined) {
+                                m *= typeEffectiveness[atkT][dt];
+                            }
+                        });
+                        if (m > maxMult) maxMult = m;
+                    });
+                    // 基準: x4, x2 で受けてしまうタイプ (1倍以下は除外)
+                    if (maxMult === 4 || maxMult === 2) {
+                        candidates.push({ ...def, maxMult, orderIndex: index });
+                    }
+                });
+
+                // ソート: 1. 倍率 (4 -> 2), 2. typeColors -> dualTypePokemonGifs の順
+                candidates.sort((a, b) => {
+                    if (a.maxMult !== b.maxMult) return b.maxMult - a.maxMult;
+                    return a.orderIndex - b.orderIndex;
+                });
+                return candidates;
+            };
+
+            let bestTargets = [];
+            if (hasAttacker) {
+                bestTargets = getDefenseRecommendations(activeAttackerTypes);
+            }
+
+            let bestAttackers = [];
+            if (hasDefender) {
+                // 防御側に対して「いまひとつ・なし」（x1未満）な全攻撃タイプを算出
+                const attackers = types.map((t, i) => {
+                    let m = 1;
+                    activeDefenderTypes.forEach(dt => {
+                        if (typeEffectiveness[t] && typeEffectiveness[t][dt] !== undefined) {
+                            m *= typeEffectiveness[t][dt];
+                        }
+                    });
+                    return { type: t, mult: m, originalIndex: i };
+                })
+                    .filter(a => a.mult < 1) // x1未満（x0, x0.25, x0.5）のみ抽出
+                    .sort((a, b) => {
+                        // 1. 倍率が低い順 (x0 -> x0.25 -> x0.5)
+                        if (a.mult !== b.mult) return a.mult - b.mult;
+                        // 2. typeColorsの定義順 (originalIndexが小さい順)
+                        return a.originalIndex - b.originalIndex;
+                    });
+
+                bestAttackers = attackers.map(a => a.type);
+            }
+
+            document.querySelectorAll('.type-slot').forEach(slot => {
+                const target = slot.dataset.target;
+                const [category, index] = target.split('-');
+                const selectedType = currentState[category][index];
+
+                if (selectedType) {
+                    slot.innerHTML = `<img src="${typeGifs[selectedType]}" alt="" style="height: 44px;">${selectedType}`;
+                    slot.style.backgroundColor = typeColors[selectedType];
+                    slot.style.border = 'none';
+                } else {
+                    if (category === 'def' && hasAttacker && bestTargets.length > 0) {
+                        const idx = parseInt(index);
+                        // ぼうぎょスロット１におすすめ１→ぼうぎょスロット２におすすめ２→ぼうぎょスロット１におすすめ３...
+                        // スロット1(idx=0): 1, 3, 5... (i % 2 === 0)
+                        // スロット2(idx=1): 2, 4, 6... (i % 2 === 1)
+                        const chunk = bestTargets.filter((_, i) => i % 2 === idx).slice(0, 4);
+                        let hasMoreSuffix = "";
+                        if (bestTargets.filter((_, i) => i % 2 === idx).length > 4) hasMoreSuffix = " 他";
+
+                        const displayLabels = chunk.map(b => b.label).join(' / ') + hasMoreSuffix;
+
+                        if (chunk.length > 0) {
+                            slot.innerHTML = `<div style="opacity: 0.6; font-size: 10px; line-height: 1.3; font-weight: normal; padding: 0 10px; text-align: left; width: 100%;">
+                                 <span style="color: #ff3f34; font-weight: 800;">[${displayLabels}]</span><br>には大ダメージ！
+                            </div>`;
+                        } else {
+                            slot.textContent = '未設定';
+                        }
+                    } else if (category === 'atk' && hasDefender && bestAttackers.length > 0) {
+                        // ５つ以上ある場合は、こうげきスロット１におすすめ１→２→３→４→１(5)→２(6)...と追加
+                        const idx = parseInt(index);
+                        // 各スロットに対応するおすすめ（i % 4）を抽出。各スロット最大3件程度表示
+                        const chunk = bestAttackers.filter((_, i) => i % 4 === idx).slice(0, 2);
+
+                        let hasMoreSuffix = "";
+                        if (bestAttackers.filter((_, i) => i % 4 === idx).length > 2) hasMoreSuffix = " 他";
+
+                        if (chunk.length > 0) {
+                            let label = chunk.join(' / ');
+                            slot.innerHTML = `<div style="opacity: 0.6; font-size: 10px; line-height: 1.3; font-weight: normal; padding: 0 10px; text-align: left; width: 100%;">
+                                 <span style="color: #74b9ff; font-weight: 800;">[${label}${hasMoreSuffix}]</span><br>なら効果はいまひとつ...
+                            </div>`;
+                        } else {
+                            slot.textContent = '未設定';
+                        }
+                    } else {
+                        slot.textContent = '未設定';
+                    }
+                    slot.style.backgroundColor = 'rgba(255,255,255,0.1)';
+                    slot.style.border = '1px solid rgba(255,255,255,0.2)';
+                }
+            });
+        }
+
+        // ページロード時に計算を実行
+        window.addEventListener('DOMContentLoaded', () => {
+            refreshSlots();
+            renderResults();
+        });
+
+        document.querySelector('.close-btn').addEventListener('click', () => {
+            document.getElementById('type-modal').classList.remove('visible');
+        });
+
+        // ウィンドウ外をクリックした時に閉じる処理
+        document.getElementById('type-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'type-modal') {
+                document.getElementById('type-modal').classList.remove('visible');
+            }
+        });
+
+        // Render the calculated results
+        function renderResults() {
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.innerHTML = '';
+
+            let defTypes = currentState.def.filter(Boolean);
+            defTypes = [...new Set(defTypes)]; // Remove duplicates
+
+            let hasAttacker = currentState.atk.some(Boolean);
+
+            if (defTypes.length === 0 && !hasAttacker) {
+                resultsContainer.innerHTML = '<div class="empty-state">こうげきとぼうぎょのタイプを設定してください。</div>';
+                return;
+            }
+
+            if (defTypes.length === 0) {
+                resultsContainer.innerHTML = '<div class="empty-state">ぼうぎょのタイプを設定してください。</div>';
+                return;
+            }
+
+            if (!hasAttacker) {
+                resultsContainer.innerHTML = '<div class="empty-state">こうげきのタイプを設定してください。</div>';
+                return;
+            }
+
+            let htmlHTML = '';
+            currentState.atk.forEach((atkType, index) => {
+                if (!atkType) return;
+
+                let multiplier = 1;
+                defTypes.forEach(defType => {
+                    if (typeEffectiveness[atkType] && typeEffectiveness[atkType][defType] !== undefined) {
+                        multiplier *= typeEffectiveness[atkType][defType];
+                    }
+                });
+
+                let text = '等倍';
+                let multClass = 'mult-1';
+                if (multiplier === 4) { text = '効果は　ちょうばつぐんだ！'; multClass = 'mult-4'; }
+                else if (multiplier === 2) { text = '効果は　ばつぐんだ！'; multClass = 'mult-2'; }
+                else if (multiplier === 1) { text = '効果は　ふつう。'; multClass = 'mult-1'; }
+                else if (multiplier === 0.5) { text = '効果は　いまひとつのようだ...'; multClass = 'mult-05'; }
+                else if (multiplier === 0.25) { text = '全然　効いてない！'; multClass = 'mult-025'; }
+                else if (multiplier === 0) { text = '効果が　ないようだ...'; multClass = 'mult-0'; }
+
+                let barWidth = 0;
+                if (multiplier === 4) barWidth = 524;
+                else if (multiplier === 2) barWidth = 393;
+                else if (multiplier === 1) barWidth = 262;
+                else if (multiplier === 0.5) barWidth = 131;
+                else if (multiplier === 0.25) barWidth = 65.5;
+                else if (multiplier === 0) barWidth = 0;
+
+                htmlHTML += `
+                    <div class="result-card" style="border-left-color: ${typeColors[atkType]}; animation-delay: ${index * 0.1}s;">
+                        <div class="result-type" style="background-color: ${typeColors[atkType]}">
+                            <img src="${typeGifs[atkType]}" alt="">
+                            ${atkType}
+                        </div>
+                        <div class="result-bar-container">
+                            <div class="result-bar" style="width: ${barWidth}px; background: linear-gradient(to right, ${typeColors[atkType]}cc, ${typeColors[atkType]}44); border: 1px solid ${typeColors[atkType]}88;"></div>
+                            <div class="result-info">
+                                <span class="result-message">${text}</span>
+                                <span class="result-multiplier ${multClass}">x${multiplier}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // --- 攻撃のおすすめタイプ (防御側の弱点となるタイプ: x4, x2) ---
+            let recommendedAtk = [];
+            types.forEach((t, i) => {
+                let mult = 1;
+                defTypes.forEach(dt => {
+                    if (typeEffectiveness[t] && typeEffectiveness[t][dt] !== undefined) {
+                        mult *= typeEffectiveness[t][dt];
+                    }
+                });
+                if (mult > 1) {
+                    recommendedAtk.push({ type: t, mult: mult, originalIndex: i });
+                }
+            });
+            // 優先順位: 倍率が高い順 (x4 -> x2), 次に typeColors 順
+            recommendedAtk.sort((a, b) => {
+                if (a.mult !== b.mult) return b.mult - a.mult;
+                return a.originalIndex - b.originalIndex;
+            });
+
+            if (recommendedAtk.length > 0) {
+                htmlHTML += `
+                    <div class="recommendation-section">
+                        <div class="recommendation-title">こうげきのおすすめタイプ</div>
+                        <div class="recommendation-list">
+                            ${recommendedAtk.map(item => {
+                    const colorStyle = `background: ${typeColors[item.type]};`;
+                    return `
+                                    <div class="recommend-badge" style="position: relative; padding-left: 15px; overflow: hidden;">
+                                        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 6px; ${colorStyle}"></div>
+                                        <img src="${typeGifs[item.type]}" style="height: 44px;"> ${item.type} (x${item.mult})
+                                    </div>
+                                `;
+                }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            let currentAtkTypes = currentState.atk.filter(Boolean);
+
+            // --- 全ての技が半減以下 ---
+            const hardResults = runGlobalSimulation(currentAtkTypes).filter(res => res.maxMult <= 0.5);
+            if (hardResults.length > 0) {
+                // 苦手な攻撃先は、より「耐性が多く」「ダメージが低い」順に並び替え
+                hardResults.sort((a, b) => {
+                    if (b.resistCount !== a.resistCount) return b.resistCount - a.resistCount;
+                    return a.maxMult - b.maxMult;
+                });
+
+                const isMobile = window.innerWidth <= 768;
+                const limit = isMobile ? 2 : 6; // 1行目だけ表示
+                const needsToggle = hardResults.length > limit;
+
+                htmlHTML += `
+                    <div class="recommendation-section" style="border-top-style: dashed; border-top-color: rgba(162, 155, 254, 0.3);">
+                        <div class="recommendation-title">💀 すべての技が半減以下</div>
+                        <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 10px;">
+                            全ての攻撃タイプを「効果はいまひとつ（x0.5以下）」で受けることができるポケモンのタイプです。
+                        </div>
+                        <div id="sim-wrapper-hard" class="simulation-wrapper ${!needsToggle ? 'expanded' : ''}">
+                            <div class="simulation-list">
+                                ${hardResults.map(res => {
+                    let gif = dualTypePokemonGifs[res.label] || typeGifs[res.types[0]];
+                    const colorStyle = res.types.length === 2
+                        ? `background: linear-gradient(to bottom, ${typeColors[res.types[0]]} 40%, ${typeColors[res.types[1]]} 60%);`
+                        : `background: ${typeColors[res.types[0]]};`;
+                    return `
+                                        <div class="sim-item" style="position: relative; padding-left: 15px; overflow: hidden; background: rgba(45, 52, 54, 0.4); border-color: rgba(162, 155, 254, 0.2);">
+                                            <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 6px; ${colorStyle}"></div>
+                                            <div class="sim-label">
+                                                <img src="${gif}">
+                                                <div style="line-height: 1.1;">
+                                                    ${res.types[0]}${res.types.length > 1 ? `<br>${res.types[1]}` : ''}
+                                                </div>
+                                            </div>
+                                            <div class="sim-stats" style="flex-direction: column; align-items: flex-start; gap: 2px;">
+                                                <div class="sim-resist" style="color: #a29bfe;">いまひとつ： ${res.resistCount}</div>
+                                                <div class="sim-damage" style="color: #fab1a0;">最大： x${res.maxMult}</div>
+                                                <div style="font-size: 10px; opacity: 0.6;">最小： x${res.minMult}</div>
+                                            </div>
+                                        </div>
+                                    `;
+                }).join('')}
+                            </div>
+                            ${needsToggle ? '<div class="simulation-overlay"></div>' : ''}
+                        </div>
+                        ${needsToggle ? `
+                            <div class="sim-controls" style="display: flex; gap: 8px; margin-top: 10px;">
+                                <button class="show-more-btn btn-back" style="margin-top: 0; flex: 1;" onclick="toggleSimulationHard(this, 'back')">▲ 1行戻す</button>
+                                <button class="show-more-btn btn-step" style="margin-top: 0; flex: 1;" onclick="toggleSimulationHard(this, 'step')">▼ 1行追加</button>
+                                <button class="show-more-btn btn-all" style="margin-top: 0; flex: 2;" data-count="${hardResults.length}" onclick="toggleSimulationHard(this, 'all')">▶ 全表示 (${hardResults.length}件)</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            // --- 攻撃シミュレーション結果一覧（最小x1以上のタイプ） ---
+            const simResults = runGlobalSimulation(currentAtkTypes).filter(res => res.minMult >= 1.0);
+            if (simResults.length > 0) {
+                const isMobile = window.innerWidth <= 768;
+                const limit = isMobile ? 2 : 6; // 1行目（スマホ2列、PC約6列）だけ表示
+                const needsToggle = simResults.length > limit;
+
+                htmlHTML += `
+                    <div class="recommendation-section" style="border-top-style: dashed; border-top-color: rgba(255,211,42,0.2);">
+                        <div class="recommendation-title">🎯 すべての技が等倍以上</div>
+                        <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 10px;">
+                            全ての攻撃タイプを「効果はいまひとつ（x0.5以下）」で受けることができないポケモンのタイプです。
+                        </div>
+                        <div id="sim-wrapper-easy" class="simulation-wrapper ${!needsToggle ? 'expanded' : ''}">
+                            <div class="simulation-list">
+                                ${simResults.map(res => {
+                    let gif = dualTypePokemonGifs[res.label] || typeGifs[res.types[0]];
+                    const colorStyle = res.types.length === 2
+                        ? `background: linear-gradient(to bottom, ${typeColors[res.types[0]]} 40%, ${typeColors[res.types[1]]} 60%);`
+                        : `background: ${typeColors[res.types[0]]};`;
+                    return `
+                                        <div class="sim-item" style="position: relative; padding-left: 15px; overflow: hidden;">
+                                            <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 6px; ${colorStyle}"></div>
+                                            <div class="sim-label">
+                                                <img src="${gif}">
+                                                <div style="line-height: 1.1;">
+                                                    ${res.types[0]}${res.types.length > 1 ? `<br>${res.types[1]}` : ''}
+                                                </div>
+                                            </div>
+                                            <div class="sim-stats" style="flex-direction: column; align-items: flex-start; gap: 2px;">
+                                                <div class="sim-resist">いまひとつ： ${res.resistCount}</div>
+                                                <div class="sim-damage" style="color: #ff7675;">最大： x${res.maxMult}</div>
+                                                <div style="font-size: 10px; opacity: 0.6;">最小： x${res.minMult}</div>
+                                            </div>
+                                        </div>
+                                    `;
+                }).join('')}
+                            </div>
+                            ${needsToggle ? '<div class="simulation-overlay"></div>' : ''}
+                        </div>
+                        ${needsToggle ? `
+                            <div class="sim-controls" style="display: flex; gap: 8px; margin-top: 10px;">
+                                <button class="show-more-btn btn-back" style="margin-top: 0; flex: 1;" onclick="toggleSimulationEasy(this, 'back')">▲ 1行戻す</button>
+                                <button class="show-more-btn btn-step" style="margin-top: 0; flex: 1;" onclick="toggleSimulationEasy(this, 'step')">▼ 1行追加</button>
+                                <button class="show-more-btn btn-all" style="margin-top: 0; flex: 2;" data-count="${simResults.length}" onclick="toggleSimulationEasy(this, 'all')">▶ 全表示 (${simResults.length}件)</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            resultsContainer.innerHTML = htmlHTML;
+
+            // 初期化: ボタンの状態を更新
+            setTimeout(() => {
+                updateSimButtonStates('sim-wrapper-easy');
+                updateSimButtonStates('sim-wrapper-hard');
+            }, 0);
+        }
+
+        // 保存された状態からUI（ボタンの文字や色）を復元する初期化処理
+        function initApp() {
+            refreshSlots();
+            renderResults();
+        }
+
+        initApp();
+
+        /*
+         * ==========================================
+         *   開発者ツールを開けないようにする処理
+         * ==========================================
+         * ※ 他のユーザーがソースコードを見たり、開発用コンソールを
+         *    不正に操作するのを防止するため、明示的に禁止設定を行っています。
+         */
+
+        // 1. 右クリックメニューの禁止
+        document.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+        });
+
+        // 2. キーボードショートカットでの開発ツール／ソースコード表示の禁止
+        document.addEventListener('keydown', function (e) {
+            F12キーの禁止
+            if (e.key === 'F12' || e.keyCode === 123) {
+                e.preventDefault();
+            }
+            // Ctrl/Cmd + Shift + I または C または J (開発ツールのショートカット) の禁止
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'C' || e.key === 'c' || e.key === 'J' || e.key === 'j')) {
+                e.preventDefault();
+            }
+            // Ctrl/Cmd + U (ソースコードの表示) の禁止
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'U' || e.key === 'u')) {
+                e.preventDefault();
+            }
+        });
+
+        // シミュレーションリストの展開・折りたたみ (ターゲット: 🎯 すべての技が等倍以上)
+        function toggleSimulationEasy(btn, mode) {
+            const wrapperId = 'sim-wrapper-easy';
+            const wrapper = document.getElementById(wrapperId);
+            const BASE_HEIGHT = 145;
+            const ROW_STEP = 145;
+
+            if (mode === 'all') {
+                const isExpanded = wrapper.classList.toggle('expanded');
+                wrapper.style.maxHeight = isExpanded ? '20000px' : BASE_HEIGHT + 'px';
+            } else {
+                // step or back
+                let currentMax = parseInt(wrapper.style.maxHeight) || BASE_HEIGHT;
+                if (wrapper.classList.contains('expanded')) {
+                    wrapper.classList.remove('expanded');
+                    currentMax = wrapper.scrollHeight;
+                }
+
+                if (mode === 'step') {
+                    wrapper.style.maxHeight = (currentMax + ROW_STEP) + "px";
+                } else {
+                    // back
+                    let target = currentMax - ROW_STEP;
+                    if (target < BASE_HEIGHT) target = BASE_HEIGHT;
+                    // もし現在がscrollHeightを超えていたら、一旦scrollHeightから引く
+                    if (currentMax > wrapper.scrollHeight) {
+                        target = wrapper.scrollHeight - ROW_STEP;
+                    }
+                    wrapper.style.maxHeight = Math.max(BASE_HEIGHT, target) + "px";
+                }
+            }
+            setTimeout(() => updateSimButtonStates(wrapperId), 450);
+        }
+
+        // シミュレーションリストの展開・折りたたみ (ターゲット: 💀 全ての技が半減以下)
+        function toggleSimulationHard(btn, mode) {
+            const wrapperId = 'sim-wrapper-hard';
+            const wrapper = document.getElementById(wrapperId);
+            const BASE_HEIGHT = 145;
+            const ROW_STEP = 145;
+
+            if (mode === 'all') {
+                const isExpanded = wrapper.classList.toggle('expanded');
+                wrapper.style.maxHeight = isExpanded ? '20000px' : BASE_HEIGHT + 'px';
+            } else {
+                // step or back
+                let currentMax = parseInt(wrapper.style.maxHeight) || BASE_HEIGHT;
+                if (wrapper.classList.contains('expanded')) {
+                    wrapper.classList.remove('expanded');
+                    currentMax = wrapper.scrollHeight;
+                }
+
+                if (mode === 'step') {
+                    wrapper.style.maxHeight = (currentMax + ROW_STEP) + "px";
+                } else {
+                    // back
+                    let target = currentMax - ROW_STEP;
+                    if (target < BASE_HEIGHT) target = BASE_HEIGHT;
+                    if (currentMax > wrapper.scrollHeight) {
+                        target = wrapper.scrollHeight - ROW_STEP;
+                    }
+                    wrapper.style.maxHeight = Math.max(BASE_HEIGHT, target) + "px";
+                }
+            }
+            setTimeout(() => updateSimButtonStates(wrapperId), 450);
+        }
+
+        // ボタンの活性・非活性状態を更新する関数
+        function updateSimButtonStates(wrapperId) {
+            const wrapper = document.getElementById(wrapperId);
+            if (!wrapper) return;
+
+            const container = wrapper.nextElementSibling;
+            if (!container || !container.classList.contains('sim-controls')) return;
+
+            const btnBack = container.querySelector('.btn-back');
+            const btnStep = container.querySelector('.btn-step');
+            const btnAll = container.querySelector('.btn-all');
+
+            const BASE_HEIGHT = 145;
+            const targetHeight = parseInt(wrapper.style.maxHeight) || BASE_HEIGHT;
+            const scrollHeight = wrapper.scrollHeight;
+            const isExpanded = wrapper.classList.contains('expanded');
+
+            // 1行戻すボタン: BASE_HEIGHT付近なら無効
+            if (btnBack) {
+                btnBack.disabled = (targetHeight <= BASE_HEIGHT);
+            }
+
+            // 1行追加ボタン: すでに末尾（scrollHeight）に達しているか、全表示中なら無効
+            if (btnStep) {
+                // 10px程度の誤差は許容
+                btnStep.disabled = (targetHeight >= scrollHeight - 10 || isExpanded);
+            }
+
+            // 全表示ボタンのテキスト更新
+            if (btnAll) {
+                if (isExpanded || targetHeight >= scrollHeight - 10) {
+                    btnAll.textContent = `▲ 閉じる`;
+                    if (!isExpanded) wrapper.classList.add('expanded'); // 自動的にexpanded状態にする
+                } else {
+                    btnAll.textContent = `▶ 全表示 (${btnAll.dataset.count}件)`;
+                }
+            }
+        }
+
+        // タイプの一括解除
+        function clearTypes(category) {
+            if (category === 'atk') {
+                currentState.atk = [null, null, null, null];
+            } else if (category === 'def') {
+                currentState.def = [null, null];
+            }
+
+            // 保存
+            saveState();
+
+            // 更新
+            refreshSlots();
+            renderResults();
+        }
+
+        // モーダル内の全解除ボタン
+        document.getElementById('modal-all-clear').addEventListener('click', () => {
+            if (!activeTarget) return;
+            const [category] = activeTarget.split('-');
+            clearTypes(category);
+            document.getElementById('type-modal').classList.remove('visible');
+        });
+    </script>
+</body>
+
+</html>
